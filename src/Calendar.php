@@ -86,13 +86,23 @@ class Calendar
     }
 
     /**
+     * Sets the day format flag to return initial day names
+     * @param DayFormat $format
+     * @return $this
+     */
+    public function setDayNameFormat(DayFormat $format): static
+    {
+        $this->config->day_format = $format;
+
+        return $this;
+    }
+
+    /**
      * Sets the day format flag to return initial day names. This is the default behaviour.
      */
     public function useInitialDayNames(): static
     {
-        $this->config->day_format = 'initials';
-
-        return $this;
+        return $this->setDayNameFormat(DayFormat::Initials);
     }
 
     /**
@@ -100,9 +110,7 @@ class Calendar
      */
     public function useFullDayNames(): static
     {
-        $this->config->day_format = 'full';
-
-        return $this;
+        return $this->setDayNameFormat(DayFormat::Full);
     }
 
     /**

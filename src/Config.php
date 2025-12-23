@@ -28,8 +28,9 @@ class Config
 
     /**
      * The Day Format.
+     * Possible values: 'initials', 'short', 'full'
      */
-    public string $day_format = 'initials';
+    public DayFormat $day_format = DayFormat::Initials;
 
     /**
      * Start day of week. Default = 0 (Sunday).

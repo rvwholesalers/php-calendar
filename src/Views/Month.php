@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace benhall14\phpCalendar\Views;
 
+use benhall14\phpCalendar\DayFormat;
 use benhall14\phpCalendar\Event;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -95,8 +96,18 @@ class Month extends View
 
         $carbonPeriod = Carbon::now()->locale($this->config->locale)->startOfWeek($this->config->starting_day)->toPeriod(7);
 
+        if ($this->config->day_format == DayFormat::Full)
+            $carbon_day = 'dayName';
+        else
+            $carbon_day = 'shortDayName';
+
         foreach ($carbonPeriod->toArray() as $carbon) {
-            $string .= '<th class="cal-th cal-th-' . strtolower($carbon->englishDayOfWeek) . '">' . ucfirst('full' === $this->config->day_format ? $carbon->dayName : mb_str_split($carbon->minDayName)[0]) . '</th>';
+
+            $label = $carbon->$carbon_day;
+            if ($this->config->day_format == DayFormat::Initials)
+                $label = mb_substr($label, 0, 1);
+
+            $string .= '<th class="cal-th cal-th-' . strtolower($carbon->englishDayOfWeek) . '">' . ucfirst($label) . '</th>';
         }
 
         $string .= '</tr>';
