@@ -1,1 +1,4 @@
 /.idea/
+php-calendar.iml
+composer.lock
+/vendor/

@@ -14,6 +14,7 @@ class Month extends View
 {
     /**
      * @var array{color: string, startDate: (string|CarbonInterface)}
+     * @noinspection PhpPrivateFieldCanBeLocalVariableInspection
      */
     private array $options = [
         'color' => '',
@@ -41,6 +42,19 @@ class Month extends View
         $calendar = $this->makeHiddenStyles();
 
         $startDate = $this->options['startDate'];
+        $startDOW = $this->config->starting_day;
+        $firstDate = $startDate->clone();
+        $lastDate = $startDate->clone()->addDays($startDate->daysInMonth() - 1);
+
+        // add days before the beginning of the month to fill the first week
+        $padding = $startDate->getDaysFromStartOfWeek($startDOW);
+        if ($padding > 0)
+            $firstDate->addDays($padding * -1);
+
+        // add days after the end of the month to fill the last week
+        $endPadding = 6 - $lastDate->getDaysFromStartOfWeek($startDOW);
+        if ($endPadding > 0)
+            $lastDate->addDays($endPadding);
 
         $calendar .= sprintf('<table class="calendar  %s %s ">', $this->options['color'], $this->config->table_classes);
 
@@ -49,14 +63,11 @@ class Month extends View
         $calendar .= '<tbody>';
 
         $calendar .= '<tr class="cal-week-' . $startDate->weekOfMonth . '">';
-        $calendar .= $this->paddingBeforeTheMonthStartDate($startDate);
 
-        $carbonPeriod = $startDate->locale($this->config->locale)->toPeriod($startDate->daysInMonth());
+        $carbonPeriod = $firstDate->locale($this->config->locale)->toPeriod($lastDate);
         foreach ($carbonPeriod->toArray() as $carbon) {
             $calendar .= $this->renderDay($carbon);
         }
-
-        $calendar .= $this->paddingAfterTheMonthEndDate($carbonPeriod->last());
 
         $calendar .= '</tr>';
 
@@ -87,7 +98,7 @@ class Month extends View
         $colspan = 7 - count($this->config->getHiddenDays());
         $string .= '<th colspan="' . $colspan . '">';
 
-        $string .= ucfirst($startDate->locale($this->config->locale)->monthName) . ' ' . $startDate->year;
+        $string .= $this->config->title ?: ucfirst($startDate->locale($this->config->locale)->monthName) . ' ' . $startDate->year;
 
         $string .= '</th>';
 
@@ -113,40 +124,6 @@ class Month extends View
         $string .= '</tr>';
 
         return $string . '</thead>';
-    }
-
-    protected function paddingBeforeTheMonthStartDate(CarbonInterface $currentDay): string
-    {
-        $padding = $currentDay->getDaysFromStartOfWeek($this->config->starting_day);
-
-        if (0 === $padding) {
-            return '';
-        }
-
-        $string = '';
-        foreach (array_reverse(range(1, $padding)) as $num) {
-            $day = $currentDay->clone()->subDays($num);
-            $string .= '<td class="pad cal-day-' . strtolower($day->englishDayOfWeek) . '"> </td>';
-        }
-
-        return $string;
-    }
-
-    protected function paddingAfterTheMonthEndDate(CarbonInterface $currentDay): string
-    {
-        $padding = 6 - $currentDay->getDaysFromStartOfWeek($this->config->starting_day);
-
-        if (0 === $padding) {
-            return '';
-        }
-
-        $string = '';
-        foreach (range(1, $padding) as $num) {
-            $day = $currentDay->clone()->addDays($num);
-            $string .= '<td class="pad cal-day-' . strtolower($day->englishDayOfWeek) . '"> </td>';
-        }
-
-        return $string;
     }
 
     protected function renderDay(CarbonInterface $runningDay): string
@@ -183,21 +160,26 @@ class Month extends View
             }
         }
 
-        $dayRender = '<td class="day cal-day cal-day-' . strtolower($runningDay->englishDayOfWeek) . ' ' . $classes . $today_class . '" ' . $data_attributes . ' title="' . htmlentities(strip_tags($event_summary)) . '">';
+        $className = 'cal-day-' . trim(strtolower($runningDay->englishDayOfWeek) . ' ' . $classes . ' ' . $today_class);
+        $title = htmlentities(strip_tags($event_summary));
+        $isoDate = $runningDay->toDateString();
+        $dom = $runningDay->day;
 
-        $dayRender .= '<div class="cal-day-box">';
+        if ($dom == 1)
+            $dom .= ' ' . $runningDay->monthName;
 
-        $dayRender .= $runningDay->day;
-
-        $dayRender .= '</div>';
-
-        $dayRender .= '<div class="cal-event-box">';
-
-        $dayRender .= $event_summary;
-
-        $dayRender .= '</div>';
-
-        $dayRender .= '</td>';
+        $dayRender = <<<HTML
+<td class="day cal-day $className" $data_attributes title="$title" data-date="$isoDate">
+    <div class="cal-day-div">
+        <div class="cal-day-box">
+            $dom
+        </div>
+        <div class="cal-event-box">
+            $event_summary
+        </div>
+    </div>
+</td>
+HTML;
 
         // check if this calendar-row is full and if so push to a new calendar row
         if ($runningDay->dayOfWeek === $this->config->starting_day) {
