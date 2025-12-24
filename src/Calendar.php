@@ -85,6 +85,13 @@ class Calendar
         throw new BadMethodCallException(sprintf('Method "%s" does not exist.', $method));
     }
 
+    public function setTitle(string $title): static
+    {
+        $this->config->title = $title;
+
+        return $this;
+    }
+
     /**
      * Sets the day format flag to return initial day names
      * @param DayFormat $format

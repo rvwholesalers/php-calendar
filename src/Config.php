@@ -71,6 +71,13 @@ class Config
     public array $hiddenDays = [];
 
     /**
+     * Override the default calendar title.
+     *
+     * @var string
+     */
+    public string $title = '';
+
+    /**
      * @return list<string>
      */
     public function getHiddenDays(): array
