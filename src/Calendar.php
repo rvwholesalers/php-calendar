@@ -32,6 +32,12 @@ class Calendar
 {
     private Config $config;
 
+    /**
+     * @var mixed|null Function to modify the contents of cal-day-box and cal-event-box.
+     *      i.e: function ModifyContents($iso_date, &$day_content, &$event_content): void
+     */
+    private mixed $dateHeaderCallback = null;
+
     public function __construct()
     {
         $this->config = new Config();
@@ -400,5 +406,25 @@ class Calendar
     public function render(array $options): void
     {
         echo 'week' === $this->config->type ? $this->asWeekView($options) : $this->asMonthView($options);
+    }
+
+    /**
+     * @param callable|null $dateHeaderCallback Function to modify the contents of cal-day-box and cal-event-box.
+     *        i.e: function ModifyDateHeader($iso_date, &$day_content): void
+     * @return void
+     */
+    public function setDateHeaderCallback(mixed $dateHeaderCallback): void
+    {
+        $this->dateHeaderCallback = $dateHeaderCallback;
+    }
+
+    public function hasDateHeaderCallback(): bool
+    {
+        return isset($this->dateHeaderCallback) && is_callable($this->dateHeaderCallback);
+    }
+
+    public function getDateHeaderCallback(): Callable
+    {
+        return $this->dateHeaderCallback;
     }
 }

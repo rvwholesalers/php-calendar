@@ -168,6 +168,9 @@ class Month extends View
         if ($dom == 1)
             $dom .= ' ' . $runningDay->monthName;
 
+        if ($this->calendar->hasDateHeaderCallback())
+            $this->calendar->getDateHeaderCallback()($isoDate, $dom);
+
         $dayRender = <<<HTML
 <td class="day cal-day $className" $data_attributes title="$title" data-date="$isoDate">
     <div class="cal-day-div">

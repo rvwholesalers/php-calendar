@@ -115,10 +115,15 @@ class Week extends View
                 continue;
             }
 
+            $dateHeader = '<div class="cal-weekview-dow">' . ucfirst($carbon->dayName) . '</div>';
+            $dateHeader .= '<div class="cal-weekview-day">' . $carbon->day . '</div>';
+            $dateHeader .= '<div class="cal-weekview-month">' . ucfirst($carbon->monthName) . '</div>';
+
+            if ($this->calendar->hasDateHeaderCallback())
+                $this->calendar->getDateHeaderCallback()($carbon->toDateString(), $dateHeader);
+
             $headerString .= '<th class="cal-th cal-th-' . strtolower($carbon->englishDayOfWeek) . '">';
-            $headerString .= '<div class="cal-weekview-dow">' . ucfirst($carbon->dayName) . '</div>';
-            $headerString .= '<div class="cal-weekview-day">' . $carbon->day . '</div>';
-            $headerString .= '<div class="cal-weekview-month">' . ucfirst($carbon->monthName) . '</div>';
+            $headerString .= $dateHeader;
             $headerString .= '</th>';
         }
 
